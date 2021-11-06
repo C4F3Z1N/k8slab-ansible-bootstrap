@@ -1,0 +1,36 @@
+---
+# tasks file for install_containerd
+
+- name: Use distro-specific playbook
+  include_tasks: "{{ lookup('first_found', find_me) }}"
+  register: included
+  vars:
+    find_me:
+      files:
+        - "{{ ansible_distribution | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-based.yml"
+
+- name: Create a config. directory
+  file:
+    path: /etc/containerd
+    state: directory
+
+- name: Default config. (1/2)
+  command: containerd config default
+  changed_when: false
+  register: containerd_config
+
+- name: Default config. (2/2)
+  copy:
+    dest: /etc/containerd/config.toml
+    content: "{{ containerd_config.stdout }}"
+
+- name: "Conclusion ({{ role_hash_short }})"
+  debug:
+    var: included
+  vars:
+    role_hash_short: "{{ (role_name | hash('md5'))[:10] }}"
+  changed_when: included is succeeded
+  notify: "{{ role_hash_short }}/post_install"
+
+- meta: flush_handlers

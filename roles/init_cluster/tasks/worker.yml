@@ -1,0 +1,8 @@
+---
+# tasks file for init_cluster
+
+- name: Join cluster
+  when: join_cmd is defined
+  command: "{{ join_cmd }}"
+  vars:
+    join_cmd: "{{ hostvars[groups.controller[0]]['join_cmd']['stdout'] }}"

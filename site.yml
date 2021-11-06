@@ -1,0 +1,58 @@
+#!/usr/bin/env ansible-playbook
+---
+
+- name: Install Kubernetes
+  hosts: all
+  become: yes
+  vars:
+    container_runtime: crio # either "containerd" or "crio";
+    container_runtime_version: "1.22" # should match {kubernetes_version} if {container_runtime} == crio;
+    kubernetes_version: 1.22.0-00
+
+  # pre_tasks:
+  # - name: Gather the package facts
+  #   package_facts:
+  #     manager: auto
+  #   # - debug:
+  #   #     msg:
+  #   #       - "{{ play_hosts }}"
+  #   - debug:
+  #       msg: "{{ hostvars[item]['ansible_default_ipv4']['address'] }}"
+  #     with_items: "{{ play_hosts }}"
+
+  roles:
+    - prepare_os
+    # - { role: "install_{{ container_runtime }}" }
+    - install_container_runtime
+    - install_kubernetes
+
+  # post_tasks:
+  #   - name: Reachability test
+  #     command: "ping -c 2 {{ item }}"
+  #     changed_when: false
+  #     vars:
+  #       ipv4_address: "{{ hostvars[item]['ansible_default_ipv4']['address'] | default(omit) }}"
+  #     when: ipv4_address is defined
+  #     with_items: "{{ play_hosts }}"
+
+- name: Initialize the cluster
+  hosts: all
+  order: sorted
+  become: yes
+  vars:
+    pod_network_cidr: 10.80.80.0/16
+    pod_network_manifests: https://docs.projectcalico.org/manifests/calico.yaml
+
+  roles:
+    - init_cluster
+
+  # post_tasts:
+  #   - debug:
+  #       msg: Done!
+
+  # tasks:
+    # - command: "kubeadm init --pod-network-cidr {{ pod_network_cidr }}"
+    #   register: init_result
+
+    # - debug:
+    #     var: init_result

@@ -1,0 +1,18 @@
+---
+# tasks file for init_cluster
+
+- name: Reset kubeadm
+  command: kubeadm reset --force
+  register: reset
+
+- name: Use role-specific playbook
+  when: reset is succeeded
+  include_tasks: "{{ lookup('first_found', find_me) }}"
+  register: included
+  vars:
+    find_me: |
+      {{
+        ([inventory_hostname] + group_names) |
+        product(['yml']) |
+        map('join', '.')
+      }}

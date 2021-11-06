@@ -1,0 +1,16 @@
+---
+# handlers file for common
+
+- name: Prevent packages from being upgraded
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  with_items: "{{ packages | default([]) }}"
+
+- name: Enable and restart services
+  systemd:
+    name: "{{ item }}"
+    enabled: yes
+    state: restarted
+    daemon_reload: yes
+  with_items: "{{ services | default([]) }}"

@@ -1,0 +1,46 @@
+---
+# tasks file for init_cluster
+
+- name: Initialize
+  command: "kubeadm init --pod-network-cidr {{ pod_network_cidr }}"
+  register: init
+
+- name: "Copy KUBECONFIG to {{ ansible_user }}'s home (1/3)"
+  user:
+    name: "{{ ansible_user }}"
+  register: user_details
+
+- name: "Copy KUBECONFIG to {{ ansible_user }}'s home (2/3)"
+  file:
+    path: "{{ user_details.home }}/.kube"
+    owner: "{{ ansible_user | default(user_details.uid) }}"
+    group: "{{ ansible_user | default(user_details.group) }}"
+    state: directory
+
+- name: "Copy KUBECONFIG to {{ ansible_user }}'s home (3/3)"
+  when: init is succeeded
+  file:
+    src: "{{ KUBECONFIG }}"
+    dest: "{{ user_details.home }}/.kube/config"
+    owner: "{{ ansible_user | default(ansible_user_id) }}"
+    group: "{{ ansible_user | default(ansible_user_id) }}"
+    state: link
+  vars:
+    KUBECONFIG: |
+      {{
+        init.stdout |
+        regex_search('KUBECONFIG=.*') |
+        split('=') |
+        last
+      }}
+
+- name: Apply network manifests
+  command: "kubectl apply -f {{ item }}"
+  environment:
+    KUBECONFIG: "{{ user_details.home }}/.kube/config"
+  with_items: "{{ pod_network_manifests | default([]) }}"
+
+- name: Gather join command
+  when: init is succeeded
+  command: kubeadm token create --print-join-command
+  register: join_cmd

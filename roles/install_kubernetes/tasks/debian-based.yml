@@ -1,0 +1,28 @@
+---
+# tasks file for install_kubernetes
+
+- name: Install repository dependencies
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+    state: present
+
+- name: Import repository key
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Add repository
+  apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+    update_cache: yes
+
+- name: Install packages
+  apt:
+    name:
+    - "kubeadm={{ kubernetes_version }}"
+    - "kubectl={{ kubernetes_version }}"
+    - "kubelet={{ kubernetes_version }}"
+    state: present

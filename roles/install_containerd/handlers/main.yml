@@ -1,0 +1,14 @@
+---
+# handlers file for install_containerd
+
+- name: "{{ role_hash_short }}/post_install"
+  include_tasks: "{{ lookup('first_found', find_me) }}"
+  vars:
+    find_me:
+      files:
+        - "{{ ansible_distribution | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-based.yml"
+      paths: "{{ playbook_dir }}/roles/common/handlers/post_install"
+    packages: containerd.io
+    services: containerd
+    role_hash_short: "{{ (role_name | hash('md5'))[:10] }}"

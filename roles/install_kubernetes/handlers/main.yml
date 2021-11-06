@@ -1,0 +1,16 @@
+---
+# handlers file for install_kubernetes
+
+- name: "{{ role_hash_short }}/post_install"
+  include_tasks: "{{ lookup('first_found', find_me) }}"
+  vars:
+    find_me:
+      files:
+        - "{{ ansible_distribution | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-based.yml"
+      paths: "{{ playbook_dir }}/roles/common/handlers/post_install"
+    packages:
+      - kubeadm
+      - kubectl
+      - kubelet
+    role_hash_short: "{{ (role_name | hash('md5'))[:10] }}"

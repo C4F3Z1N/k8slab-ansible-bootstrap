@@ -1,0 +1,39 @@
+---
+# tasks file for install_crio
+
+- name: Parse distro name to match the repo standards
+  set_fact:
+    parsed_os: "{{ distro + '_' + ansible_distribution_version }}"
+  vars:
+    distro: "{{ (ansible_distribution == 'Ubuntu') | ternary('x' + ansible_distribution, ansible_distribution) }}"
+
+- name: Install repository dependencies
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+    state: present
+
+- name: Import repository keys
+  apt_key:
+    url: "{{ item }}"
+    state: present
+  with_items:
+    - "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ parsed_os }}/Release.key"
+    - "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ container_runtime_version }}/{{ parsed_os }}/Release.key"
+
+- name: Add repositories
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ parsed_os }}/ /"
+    - "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ container_runtime_version }}/{{ parsed_os }}/ /"
+
+- name: Install packages
+  apt:
+    name:
+    - cri-o
+    - cri-o-runc
+    state: present
