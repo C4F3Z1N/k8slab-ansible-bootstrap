@@ -12,5 +12,5 @@
     packages:
       - cri-o
       - cri-o-runc
-    services: crio
     role_hash_short: "{{ (role_name | hash('md5'))[:10] }}"
+    services: crio

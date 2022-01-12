@@ -3,18 +3,19 @@
 
 - name: Use distro-specific playbook
   include_tasks: "{{ lookup('first_found', find_me) }}"
-  register: included
+  register: _included
   vars:
     find_me:
       - "{{ ansible_distribution | lower }}.yml"
       - "{{ ansible_os_family | lower }}-based.yml"
 
-- name: "Conclusion ({{ role_hash_short }})"
+- name: Conclusion
   debug:
-    var: included
+    var: role_hash_short
   vars:
     role_hash_short: "{{ (role_name | hash('md5'))[:10] }}"
-  changed_when: included is succeeded
+  changed_when: _included is succeeded
   notify: "{{ role_hash_short }}/post_install"
 
-- meta: flush_handlers
+- name: Flush handlers
+  meta: flush_handlers

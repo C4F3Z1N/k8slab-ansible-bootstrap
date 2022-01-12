@@ -1,15 +1,71 @@
 #!/usr/bin/env ansible-playbook
 ---
 
-- name: Install Kubernetes
+# - name: Prepare local dependencies
+#   hosts: localhost
+#   gather_facts: no
+#   tasks:
+#     - name: Install pip requirements
+#       pip:
+#         requirements: "{{ playbook_dir }}/requirements.txt"
+#         # virtualenv: "{{ playbook_dir }}/.runtime/pyvenv"
+#         # virtualenv_command: python3 -m venv
+#         # virtualenv_site_packages: yes
+
+- name: Install Kubernetes on targets
   hosts: all
   become: yes
+  # environment:
+  #   PATH: "{{ playbook_dir }}/.runtime/pyvenv/bin:{{ ansible_env.PATH }}"
   vars:
+    # container_runtime: containerd
     container_runtime: crio # either "containerd" or "crio";
-    container_runtime_version: "1.22" # should match {kubernetes_version} if {container_runtime} == crio;
-    kubernetes_version: 1.22.0-00
+  #   container_runtime_version: "1.22" # should match {{ kubernetes_version }} if {{ container_runtime }} == crio;
+  #   kubernetes_version: 1.22.0-00
 
   # pre_tasks:
+  # #   - local_action:
+  # #       fail: command tomlq --help
+
+  #   - fail:
+  #       msg: "{{ ansible_env | to_toml }}"
+  #   # - local_action:
+  #   #     module: setup
+  #   #   register: local_setup
+
+  #   - name: create venv
+  #     become: no
+  #     local_action:
+  #       module: tempfile
+  #       state: directory
+  #     register: tmp_venv
+
+  #   - name: check pip deps
+  #     become: no
+  #     local_action:
+  #       module: pip
+  #       name: toml
+  #       virtualenv: "{{ tmp_venv.path }}"
+  #       # virtualenv_command: /usr/bin/python3 -m venv
+  #       # virtualenv_python: python3
+  #       virtualenv_site_packages: yes
+
+  #   - fail:
+  #       msg: "{{ tmp_venv.path }}"
+
+        #   - fail:
+        #       msg: "{{ ansible_facts }}"
+
+        #   - name: check pip deps
+        #     pip:
+        #       name: toml
+        #       virtualenv: "{{ tmp_venv.path }}"
+        #       virtualenv_command: python3 -m venv
+        #       virtualenv_site_packages: yes
+
+        #   - fail:
+        #       msg: yolo
+
   # - name: Gather the package facts
   #   package_facts:
   #     manager: auto
@@ -22,8 +78,7 @@
 
   roles:
     - prepare_os
-    # - { role: "install_{{ container_runtime }}" }
-    - install_container_runtime
+    - { role: "install_{{ container_runtime }}" }
     - install_kubernetes
 
   # post_tasks:
@@ -35,16 +90,16 @@
   #     when: ipv4_address is defined
   #     with_items: "{{ play_hosts }}"
 
-- name: Initialize the cluster
-  hosts: all
-  order: sorted
-  become: yes
-  vars:
-    pod_network_cidr: 10.80.80.0/16
-    pod_network_manifests: https://docs.projectcalico.org/manifests/calico.yaml
+#- name: Initialize the cluster
+#  hosts: all
+#  order: sorted
+#  become: yes
+#  vars:
+#    pod_network_cidr: 10.80.80.0/16
+#    pod_network_manifests: https://docs.projectcalico.org/manifests/calico.yaml
 
-  roles:
-    - init_cluster
+#  roles:
+#    - init_cluster
 
   # post_tasts:
   #   - debug:

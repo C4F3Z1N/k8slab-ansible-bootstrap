@@ -1,16 +1,29 @@
 ---
 # handlers file for common
 
-- name: Prevent packages from being upgraded
+- name: Prevent package from being upgraded
   dpkg_selections:
     name: "{{ item }}"
     selection: hold
   with_items: "{{ packages | default([]) }}"
 
-- name: Enable and restart services
+- name: Enable and restart service
   systemd:
-    name: "{{ item }}"
-    enabled: yes
-    state: restarted
     daemon_reload: yes
+    enabled: yes
+    name: "{{ item }}"
+    state: restarted
+  with_items: "{{ services | default([]) }}"
+
+- service_facts:
+  when: services is defined
+
+- name: Fail when service is not running
+  fail:
+    msg: "{{ ansible_facts.services[item + '.service'] }}"
+  vars:
+    allowed_states:
+      - active
+      - running
+  when: ansible_facts.services[item + ".service"].state not in allowed_states
   with_items: "{{ services | default([]) }}"

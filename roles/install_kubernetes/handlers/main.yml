@@ -14,3 +14,4 @@
       - kubectl
       - kubelet
     role_hash_short: "{{ (role_name | hash('md5'))[:10] }}"
+    services: kubelet

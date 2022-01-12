@@ -22,7 +22,10 @@
 - name: Install packages
   apt:
     name:
-    - "kubeadm={{ kubernetes_version }}"
-    - "kubectl={{ kubernetes_version }}"
-    - "kubelet={{ kubernetes_version }}"
+    # - "kubeadm={{ kubernetes_version }}"
+    # - "kubectl={{ kubernetes_version }}"
+    # - "kubelet={{ kubernetes_version }}"
+    - kubeadm
+    - kubectl
+    - kubelet
     state: present

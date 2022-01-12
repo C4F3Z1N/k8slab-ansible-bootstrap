@@ -1,0 +1,4 @@
+---
+# defaults file for install_crio
+
+container_runtime_version: "1.22"

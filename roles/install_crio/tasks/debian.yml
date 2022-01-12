@@ -2,22 +2,24 @@
 # tasks file for install_crio
 
 - when: ansible_distribution_version | float <= 10
+  vars:
+    repo_name: buster-backports
   block:
-  - name: Add backports repository
+  - name: "Add {{ repo_name }} repository"
     apt_repository:
-      repo: deb http://deb.debian.org/debian buster-backports main
+      repo: "deb http://deb.debian.org/debian {{ repo_name }} main"
       state: present
       update_cache: yes
 
-  - name: Install libseccomp2
+  - name: "Install libseccomp2 from {{ repo_name }}"
     apt:
       name: libseccomp2
-      default_release: buster-backports
+      default_release: "{{ repo_name }}"
       state: latest
 
-  - name: Remove backports repository
+  - name: "Remove {{ repo_name }} repository"
     apt_repository:
-      repo: deb http://deb.debian.org/debian buster-backports main
+      repo: "deb http://deb.debian.org/debian {{ repo_name }} main"
       state: absent
       update_cache: yes
 

@@ -10,22 +10,28 @@
         - "{{ ansible_distribution | lower }}.yml"
         - "{{ ansible_os_family | lower }}-based.yml"
 
-- name: Create a config. directory
+- name: Create a configuration directory
   file:
     path: /etc/containerd
     state: directory
 
-- name: Default config. (1/2)
+- name: Default configuration (1/3)
   command: containerd config default
   changed_when: false
   register: containerd_config
 
-- name: Default config. (2/2)
+- name: Default configuration (2/3)
   copy:
-    dest: /etc/containerd/config.toml
     content: "{{ containerd_config.stdout }}"
+    dest: /etc/containerd/config.toml
 
-- name: "Conclusion ({{ role_hash_short }})"
+- name: Default configuration (3/3)
+  replace:
+    path: /etc/containerd/config.toml
+    regexp: "systemd_cgroup(\\s+.*)$"
+    replace: systemd_cgroup = true
+
+- name: "Role conclusion ({{ role_hash_short }})"
   debug:
     var: included
   vars:
@@ -33,4 +39,5 @@
   changed_when: included is succeeded
   notify: "{{ role_hash_short }}/post_install"
 
-- meta: flush_handlers
+# - name: Flush handlers
+  meta: flush_handlers
